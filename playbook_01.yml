@@ -69,4 +69,17 @@
       file:
         name: "/var/www/example.com/html/index.html"
         state: touch
+
+    - name: "Inserta contenido HTML en el archivo index.html"
+      copy:
+        content: |
+          <html>
+            <head>
+              <title>Welcome to Example.com!</title>
+            </head>
+            <body>
+              <h1>Success! The example.com virtual host is working!</h1>
+            </body>
+          </html>
+        dest: "/var/www/example.com/html/index.html"
 ...
