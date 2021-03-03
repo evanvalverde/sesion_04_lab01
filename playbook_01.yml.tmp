@@ -1,0 +1,85 @@
+---
+- name: "Instalacion y configuracion de serivdor Web"
+  hosts: nodo01
+  tasks:
+    - name: "Imprime la finalidad del ejercicio"
+      debug:
+        msg: |
+          En este ejericicio practicaremos el desarrollo de un playbook desde 0
+          para ello, realizaremos varias tareas para levantar un servidor apache
+
+    - name: "Instala el paquete httpd"
+      yum:
+        name: httpd
+        state: present
+
+    - name: "Habilita http en firewalld"
+      firewalld:
+        service: http
+        permanent: yes
+        state: enabled
+
+    - name: "Habilita https en firewalld"
+      firewalld:
+        service: https
+        permanent: yes
+        state: enabled
+
+    - name: "Recarga firewalld"
+      systemd:
+        name: firewalld
+        state: reloaded
+
+    - name: "Arranca el servicio httpd y lo habilita en el arranque"
+      systemd:
+        name: httpd
+        state: started
+
+    - name: "Habilita el servicio httpd en el arranque"
+      systemd:
+        name: httpd
+        enabled: yes
+
+    - name: "Deshabilita SELinux"
+      selinux:
+        state: disabled
+
+    - name: "Crea el directorio /var/www/example.com/html"
+      file:
+        name: "/var/www/example.com/html"
+        state: directory
+        owner: root 
+        group: root
+
+    - name: "Crea el directorio /var/www/example.com/log"
+      file:
+        name: "/var/www/example.com/log"
+        state: directory
+        owner: root 
+        group: root
+
+    - name: "Establece a 755 los permisos para /var/www/ de forma recursiva"
+      file:
+        name: "/var/www/"
+        state: directory
+        mode: '0755'
+        recurse: yes
+
+    - name: "Crea el fichero /var/www/example.com/html/index.html"
+      file:
+        name: "/var/www/example.com/html/index.html"
+        state: touch
+
+    - name: "Inserta contenido HTML en el archivo index.html"
+      copy:
+        content: |-
+  <html>
+    <head>
+      <title>Welcome to Example.com!</title>
+    </head>
+      <body>
+        <h1>Success! The example.com virtual host is working!</h1>
+    </body>
+  </html>
+        dest: "/var/www/example.com/html/index.html"
+...
