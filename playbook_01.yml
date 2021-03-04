@@ -46,28 +46,28 @@
 
     - name: "Crea el directorio /var/www/example.com/html"
       file:
-        name: "/var/www/example.com/html"
+        path: "/var/www/example.com/html"
         state: directory
         owner: root 
         group: root
 
     - name: "Crea el directorio /var/www/example.com/log"
       file:
-        name: "/var/www/example.com/log"
+        path: "/var/www/example.com/log"
         state: directory
         owner: root 
         group: root
 
     - name: "Establece a 755 los permisos para /var/www/ de forma recursiva"
       file:
-        name: "/var/www/"
+        path: "/var/www/"
         state: directory
         mode: '0755'
         recurse: yes
 
     - name: "Crea el fichero /var/www/example.com/html/index.html"
       file:
-        name: "/var/www/example.com/html/index.html"
+        path: "/var/www/example.com/html/index.html"
         state: touch
 
     - name: "Inserta contenido HTML en el archivo index.html"
@@ -82,4 +82,47 @@
             </body>
           </html>
         dest: "/var/www/example.com/html/index.html"
+
+    - name: "Crea el directorio /etc/httpd/sites-available"
+      file:
+        path: "/etc/httpd/sites-available"
+        state: directory
+
+    - name: "Crea el directorio /etc/httpd/sites-enabled"
+      file:
+        path: "/etc/httpd/sites-enabled"
+        state: directory
+
+    - name: "Annade 'IncludeOptional sites-enabled/*.conf' a '/etc/httpd/conf/httpd.conf'"
+      lineinfile:
+        path: '/etc/httpd/conf/httpd.conf'
+        insertafter: EOF
+        line: 'IncludeOptional sites-enabled/*.conf'
+        state: present
+        validate: apachectl configtest
+    
+    - name: "Crea '/etc/httpd/sites-available/example.com.conf' con usuario y permiso root"
+      file:
+        path: '/etc/httpd/sites-available/example.com.conf'
+        state: touch
+        owner: root 
+        group: root
+
+    - name: "Inserta la configuración del VirtualHost en '/etc/httpd/sites-available/example.com.conf'"
+      copy:
+        content: |
+          <VirtualHost *:80>
+            ServerName www.example.com
+            ServerAlias example.com
+            DocumentRoot /var/www/example.com/html
+            ErrorLog /var/www/example.com/log/error.log
+            CustomLog /var/www/example.com/log/requests.log combined
+          </VirtualHost>
+        dest: '/etc/httpd/sites-available/example.com.conf'
+    
+    - name: "Crea un enlace simbolico con origen /etc/httpd/sites-available/example.com.conf y destino /etc/httpd/sites-enabled/example.com.conf"
+      file:
+        src: '/etc/httpd/sites-available/example.com.conf'
+        dest: '/etc/httpd/sites-enabled/example.com.conf'
+        state: link
 ...
